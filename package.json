@@ -19,6 +19,7 @@
     "@angular/platform-browser": "~9.0.3",
     "@angular/platform-browser-dynamic": "~9.0.3",
     "@angular/router": "~9.0.3",
+    "@funfair-tech/wallet-angular": "file:funfair-tech-wallet-angular-1.0.0.tgz",
     "@funfair-tech/wallet-sdk": "^2.1.1",
     "rxjs": "^6.5.5",
     "tslib": "^1.10.0",

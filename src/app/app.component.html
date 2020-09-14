@@ -1,15 +1,8 @@
-<div id="fun-wallet-leader">
-  <div class="fun-wallet-container">
-    <iframe
-      allow="camera"
-      id="funwallet-iframe"
-      (load)="funWalletLoaded()"
-      is-fun-wallet
-      is-leader
-    ></iframe>
-  </div>
-</div>
-<div id="fun-wallet-darken"></div>
+<!-- Very simple example of it working in 1 app.component.html we suggest splitting into components to make this nicer as a big app would -->
+<!-- this is purely for developers to understand how it comes together, the same logic would work with split components and different modules -->
+<lib-wallet-leader
+  (loaded)="walletService.listenToWalletEvents()"
+></lib-wallet-leader>
 
 <div class="app">
   <div class="app-container">
@@ -40,14 +33,10 @@
       </div>
 
       <div class="wallet-follower">
-        <iframe
+        <lib-wallet-follower
+          page="/funds-convert"
           *ngIf="isAuthenticationCompleted$ | async"
-          id="fun-wallet-follower"
-          (load)="followerLoaded()"
-          [src]="walletUrl | safe"
-          is-fun-wallet
-          is-follower
-        ></iframe>
+        ></lib-wallet-follower>
       </div>
     </ng-container>
   </div>

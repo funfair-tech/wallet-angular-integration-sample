@@ -1,5 +1,4 @@
 import { Component } from '@angular/core';
-import window from '@funfair-tech/wallet-sdk/window';
 import { Observable } from 'rxjs';
 import { StoreService } from './services/store.service';
 import { WalletService } from './services/wallet.service';
@@ -18,26 +17,7 @@ export class AppComponent {
     boolean
   > = StoreService.isAuthenticationCompleted.pipe();
 
-  public walletUrl = undefined;
-
-  constructor(public walletService: WalletService) {
-    this.isAuthenticationCompleted$.subscribe((value) => {
-      if (value) {
-        this.walletUrl = window.funwallet.getWalletFollowerURL();
-      }
-    });
-  }
-
-  /**
-   * Load the fun wallet
-   */
-  public funWalletLoaded(): void {
-    this.walletService.walletInit();
-  }
-
-  public async followerLoaded(): Promise<void> {
-    await window.funwallet.sdk.registerFollowerInstance();
-  }
+  constructor(public walletService: WalletService) {}
 
   public async signAMessage() {
     const signature = await this.walletService.signAMessage('TESTME');
