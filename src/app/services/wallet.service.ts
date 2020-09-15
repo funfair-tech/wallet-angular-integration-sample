@@ -73,7 +73,7 @@ export class WalletService {
     window.funwallet.sdk.on<RestoreAuthenticationCompletedResponse>(
       MessageListeners.restoreAuthenticationCompleted,
       (result: RestoreAuthenticationCompletedResponse) => {
-        if (result.origin === 'https://localhost:4200') {
+        if (result.origin === 'https://wallet.funfair.io') {
           StoreService.restoreAuthenticationTaskCompleted.next(true);
         }
       },
@@ -82,7 +82,7 @@ export class WalletService {
     window.funwallet.sdk.on<AuthenticationCompletedResponse>(
       MessageListeners.authenticationCompleted,
       async (result: AuthenticationCompletedResponse) => {
-        if (result.origin === 'https://localhost:4200') {
+        if (result.origin === 'https://wallet.funfair.io') {
           StoreService.isAuthenticationCompleted.next(true);
         }
       },
@@ -91,7 +91,7 @@ export class WalletService {
     window.funwallet.sdk.on<IsKycVerifiedResponse>(
       MessageListeners.isKycVerified,
       (result: IsKycVerifiedResponse) => {
-        if (result.origin === 'https://localhost:4200') {
+        if (result.origin === 'https://wallet.funfair.io') {
           if (!result.data.isVerified) {
             window.funwallet.sdk.showFunWalletModal();
           } else {
@@ -101,10 +101,28 @@ export class WalletService {
       },
     );
 
+    window.funwallet.sdk.on(
+      MessageListeners.walletInactivityLoggedOut,
+      (result) => {
+        if (result.origin === 'https://wallet.funfair.io') {
+          StoreService.isAuthenticationCompleted.next(false);
+        }
+      },
+    );
+
+    window.funwallet.sdk.on(
+      MessageListeners.walletDeviceDeletedLoggedOut,
+      (result) => {
+        if (result.origin === 'https://wallet.funfair.io') {
+          StoreService.isAuthenticationCompleted.next(false);
+        }
+      },
+    );
+
     window.funwallet.sdk.on<KycProcessCancelledResponse>(
       MessageListeners.kycProcessCancelled,
       (result: KycProcessCancelledResponse) => {
-        if (result.origin === 'https://localhost:4200') {
+        if (result.origin === 'https://wallet.funfair.io') {
           if (result.data.cancelled) {
             window.funwallet.sdk.hideFunWalletModal();
           }
@@ -115,7 +133,7 @@ export class WalletService {
     window.funwallet.sdk.on<WalletInactivityLoggedOutResponse>(
       MessageListeners.walletInactivityLoggedOut,
       (result: WalletInactivityLoggedOutResponse) => {
-        if (result.origin === 'https://localhost:4200') {
+        if (result.origin === 'https://wallet.funfair.io') {
           if (result.data.loggedOut) {
             StoreService.isAuthenticationCompleted.next(false);
           }
@@ -126,7 +144,7 @@ export class WalletService {
     window.funwallet.sdk.on<WalletDeviceDeletedLoggedOutResponse>(
       MessageListeners.walletDeviceDeletedLoggedOut,
       (result: WalletDeviceDeletedLoggedOutResponse) => {
-        if (result.origin === 'https://localhost:4200') {
+        if (result.origin === 'https://wallet.funfair.io') {
           if (result.data.loggedOut) {
             StoreService.isAuthenticationCompleted.next(false);
           }
