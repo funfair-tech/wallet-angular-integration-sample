@@ -1,4 +1,4 @@
-import { Injectable, NgZone } from '@angular/core';
+import { Injectable } from '@angular/core';
 import {
   AuthenticationCompletedResponse,
   IsKycVerifiedResponse,
@@ -20,7 +20,7 @@ import { StoreService } from './store.service';
 })
 export class WalletService {
   private _web3Instance: Web3 | undefined;
-  constructor(private _zone: NgZone) {}
+  constructor() {}
 
   /**
    * Get the web3 instance
@@ -31,17 +31,6 @@ export class WalletService {
     }
 
     return new Web3(window.funwallet.sdk.ethereum as any);
-  }
-
-  /**
-   * Wallet init
-   * @param leaderWindow The leader window
-   */
-  public walletInit(): void {
-    window.funwallet.sdk.init({
-      ngZone: this._zone,
-    });
-    this.listenToWalletEvents();
   }
 
   /**
@@ -88,6 +77,24 @@ export class WalletService {
       },
     );
 
+    window.funwallet.sdk.on<WalletInactivityLoggedOutResponse>(
+      MessageListeners.walletInactivityLoggedOut,
+      (result: WalletInactivityLoggedOutResponse) => {
+        if (result.origin === 'https://wallet.funfair.io') {
+          StoreService.isAuthenticationCompleted.next(false);
+        }
+      },
+    );
+
+    window.funwallet.sdk.on<WalletDeviceDeletedLoggedOutResponse>(
+      MessageListeners.walletDeviceDeletedLoggedOut,
+      (result: WalletDeviceDeletedLoggedOutResponse) => {
+        if (result.origin === 'https://wallet.funfair.io') {
+          StoreService.isAuthenticationCompleted.next(false);
+        }
+      },
+    );
+
     window.funwallet.sdk.on<IsKycVerifiedResponse>(
       MessageListeners.isKycVerified,
       (result: IsKycVerifiedResponse) => {
@@ -101,52 +108,12 @@ export class WalletService {
       },
     );
 
-    window.funwallet.sdk.on(
-      MessageListeners.walletInactivityLoggedOut,
-      (result) => {
-        if (result.origin === 'https://wallet.funfair.io') {
-          StoreService.isAuthenticationCompleted.next(false);
-        }
-      },
-    );
-
-    window.funwallet.sdk.on(
-      MessageListeners.walletDeviceDeletedLoggedOut,
-      (result) => {
-        if (result.origin === 'https://wallet.funfair.io') {
-          StoreService.isAuthenticationCompleted.next(false);
-        }
-      },
-    );
-
     window.funwallet.sdk.on<KycProcessCancelledResponse>(
       MessageListeners.kycProcessCancelled,
       (result: KycProcessCancelledResponse) => {
         if (result.origin === 'https://wallet.funfair.io') {
           if (result.data.cancelled) {
             window.funwallet.sdk.hideFunWalletModal();
-          }
-        }
-      },
-    );
-
-    window.funwallet.sdk.on<WalletInactivityLoggedOutResponse>(
-      MessageListeners.walletInactivityLoggedOut,
-      (result: WalletInactivityLoggedOutResponse) => {
-        if (result.origin === 'https://wallet.funfair.io') {
-          if (result.data.loggedOut) {
-            StoreService.isAuthenticationCompleted.next(false);
-          }
-        }
-      },
-    );
-
-    window.funwallet.sdk.on<WalletDeviceDeletedLoggedOutResponse>(
-      MessageListeners.walletDeviceDeletedLoggedOut,
-      (result: WalletDeviceDeletedLoggedOutResponse) => {
-        if (result.origin === 'https://wallet.funfair.io') {
-          if (result.data.loggedOut) {
-            StoreService.isAuthenticationCompleted.next(false);
           }
         }
       },
