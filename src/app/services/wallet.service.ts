@@ -8,8 +8,6 @@ import {
   WalletDeviceDeletedLoggedOutResponse,
   WalletInactivityLoggedOutResponse,
 } from '@funfair-tech/wallet-sdk';
-// for this to not give compile time errors please add "./node_modules/@funfair-tech/wallet-sdk/window.ts"
-// to your files object in tsconfig.app.json
 import window from '@funfair-tech/wallet-sdk/window';
 import Web3 from 'web3';
 import { TransactionConfig } from 'web3-core';
@@ -124,7 +122,7 @@ export class WalletService {
    * Logout from the wallet
    */
   public async logout(): Promise<void> {
-    await window.funwallet.sdk.logout();
+    await window.funwallet.sdk.auth.logout();
     StoreService.isAuthenticationCompleted.next(false);
   }
 
@@ -132,14 +130,14 @@ export class WalletService {
    * Start the kyc process
    */
   public async kycModalOpen(): Promise<void> {
-    await window.funwallet.sdk.kycModalOpen();
+    await window.funwallet.sdk.kyc.start();
   }
 
   /**
    * Login
    */
   public login(): void {
-    window.funwallet.sdk.openWalletAuthenticationPopUp();
+    window.funwallet.sdk.auth.login();
   }
 
   /**
@@ -147,7 +145,7 @@ export class WalletService {
    * @param messageText The message text
    */
   public async signAMessage(messageText: string) {
-    const ethereumAddress = await window.funwallet.sdk.ethereumAddress();
+    const ethereumAddress = await window.funwallet.sdk.eth.address();
 
     const result = await this.web3Instance.eth.personal.sign(
       messageText,
@@ -163,7 +161,7 @@ export class WalletService {
    * @param tx The transaction
    */
   public async sendTransaction(tx: TransactionConfig) {
-    const ethereumAddress = await window.funwallet.sdk.ethereumAddress();
+    const ethereumAddress = await window.funwallet.sdk.eth.address();
     tx.from = ethereumAddress;
 
     this.web3Instance.eth
