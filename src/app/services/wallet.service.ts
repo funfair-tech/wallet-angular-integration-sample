@@ -1,6 +1,6 @@
-import { Injectable } from '@angular/core';
+import { Injectable, NgZone } from '@angular/core';
 import {
-  AuthenticationCompletedResponse,
+  FunWalletEmbed,
   IsKycVerifiedResponse,
   KycProcessCancelledResponse,
   MessageListeners,
@@ -18,7 +18,7 @@ import { StoreService } from './store.service';
 })
 export class WalletService {
   private _web3Instance: Web3 | undefined;
-  constructor() {}
+  constructor(private _zone: NgZone) {}
 
   /**
    * Get the web3 instance
@@ -29,6 +29,25 @@ export class WalletService {
     }
 
     return new Web3(window.funwallet.sdk.ethereum as any);
+  }
+
+  // you call this method when you want to load the wallet
+  // this can be on a button click or page load up to how
+  // your dApp needs it to act
+  public async lazyLoadFunWallet(): Promise<void> {
+    await FunWalletEmbed.load({
+      initOptions: {
+        ngZone: this._zone,
+      },
+      appId:
+        '0x1b084986077d1aedfa1d92318fdcc7d1621fbc92deb390269b94226fd79c0ce6',
+      // make sure its in a arrow expression
+      // functions so it can get context to `this`
+      // when executing your wallet event listener method
+      eventListenerCallback: () => {
+        this.listenToWalletEvents();
+      },
+    });
   }
 
   /**
@@ -60,17 +79,15 @@ export class WalletService {
     window.funwallet.sdk.on<RestoreAuthenticationCompletedResponse>(
       MessageListeners.restoreAuthenticationCompleted,
       (result: RestoreAuthenticationCompletedResponse) => {
-        if (result.origin === 'https://wallet.funfair.io') {
+        if (result.origin === 'https://localhost:4200') {
           StoreService.restoreAuthenticationTaskCompleted.next(true);
-        }
-      },
-    );
 
-    window.funwallet.sdk.on<AuthenticationCompletedResponse>(
-      MessageListeners.authenticationCompleted,
-      async (result: AuthenticationCompletedResponse) => {
-        if (result.origin === 'https://wallet.funfair.io') {
-          StoreService.isAuthenticationCompleted.next(true);
+          // if the user has been restored authentication then your all good
+          // to go again
+          if (result.data.isAuthenticated) {
+            // result.data.result holds `AuthenticationCompletedResponeData` in for you.
+            StoreService.isAuthenticationCompleted.next(true);
+          }
         }
       },
     );
@@ -78,7 +95,7 @@ export class WalletService {
     window.funwallet.sdk.on<WalletInactivityLoggedOutResponse>(
       MessageListeners.walletInactivityLoggedOut,
       (result: WalletInactivityLoggedOutResponse) => {
-        if (result.origin === 'https://wallet.funfair.io') {
+        if (result.origin === 'https://localhost:4200') {
           StoreService.isAuthenticationCompleted.next(false);
         }
       },
@@ -87,7 +104,7 @@ export class WalletService {
     window.funwallet.sdk.on<WalletDeviceDeletedLoggedOutResponse>(
       MessageListeners.walletDeviceDeletedLoggedOut,
       (result: WalletDeviceDeletedLoggedOutResponse) => {
-        if (result.origin === 'https://wallet.funfair.io') {
+        if (result.origin === 'https://localhost:4200') {
           StoreService.isAuthenticationCompleted.next(false);
         }
       },
@@ -96,7 +113,7 @@ export class WalletService {
     window.funwallet.sdk.on<IsKycVerifiedResponse>(
       MessageListeners.isKycVerified,
       (result: IsKycVerifiedResponse) => {
-        if (result.origin === 'https://wallet.funfair.io') {
+        if (result.origin === 'https://localhost:4200') {
           if (!result.data.isVerified) {
             window.funwallet.sdk.showFunWalletModal();
           } else {
@@ -109,7 +126,7 @@ export class WalletService {
     window.funwallet.sdk.on<KycProcessCancelledResponse>(
       MessageListeners.kycProcessCancelled,
       (result: KycProcessCancelledResponse) => {
-        if (result.origin === 'https://wallet.funfair.io') {
+        if (result.origin === 'https://localhost:4200') {
           if (result.data.cancelled) {
             window.funwallet.sdk.hideFunWalletModal();
           }
@@ -134,10 +151,18 @@ export class WalletService {
   }
 
   /**
-   * Login
+   * Login to the fun wallet
    */
-  public login(): void {
-    window.funwallet.sdk.auth.login();
+  public async login(): Promise<void> {
+    try {
+      const result = await window.funwallet.sdk.auth.login();
+      console.log('Authentication result', result);
+      // user all logged in
+      StoreService.isAuthenticationCompleted.next(true);
+    } catch (error) {
+      console.error('User did not sign in');
+      return;
+    }
   }
 
   /**

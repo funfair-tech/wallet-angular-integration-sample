@@ -9,15 +9,20 @@ import { WalletService } from './services/wallet.service';
   styleUrls: ['./app.component.scss'],
 })
 export class AppComponent {
-  public restoreAuthenticationTaskCompleted$: Observable<
-    boolean
-  > = StoreService.restoreAuthenticationTaskCompleted.pipe();
+  public injectedFunWallet = false;
 
-  public isAuthenticationCompleted$: Observable<
-    boolean
-  > = StoreService.isAuthenticationCompleted.pipe();
+  public restoreAuthenticationTaskCompleted$: Observable<boolean> =
+    StoreService.restoreAuthenticationTaskCompleted.pipe();
+
+  public isAuthenticationCompleted$: Observable<boolean> =
+    StoreService.isAuthenticationCompleted.pipe();
 
   constructor(public walletService: WalletService) {}
+
+  public async lazyLoadFunWallet(): Promise<void> {
+    await this.walletService.lazyLoadFunWallet();
+    this.injectedFunWallet = true;
+  }
 
   public async signAMessage() {
     const signature = await this.walletService.signAMessage('TESTME');
