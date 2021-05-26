@@ -1,40 +1,44 @@
 <!-- Very simple example of it working in 1 app.component.html we suggest splitting into components to make this nicer as a big app would -->
 <!-- this is purely for developers to understand how it comes together, the same logic would work with split components and different modules -->
-<lib-wallet-leader
-  (loaded)="walletService.listenToWalletEvents()"
-></lib-wallet-leader>
 
 <div class="app">
   <div class="app-container">
     <img src="./assets/logo.svg" class="app-logo" alt="logo" />
-    <p *ngIf="!(restoreAuthenticationTaskCompleted$ | async)">
-      Loading please wait
-    </p>
-    <ng-container *ngIf="restoreAuthenticationTaskCompleted$ | async">
-      <div class="action-buttons">
-        <div
-          class="logged-out-actions"
-          *ngIf="!(isAuthenticationCompleted$ | async)"
-        >
-          <button (click)="walletService.login()">Login</button>
+
+    <button (click)="lazyLoadFunWallet()" *ngIf="!injectedFunWallet">
+      Load fun wallet sdk into dapp
+    </button>
+
+    <ng-container *ngIf="injectedFunWallet">
+      <p *ngIf="!(restoreAuthenticationTaskCompleted$ | async)">
+        Loading please wait
+      </p>
+      <ng-container *ngIf="restoreAuthenticationTaskCompleted$ | async">
+        <div class="action-buttons">
+          <div
+            class="logged-out-actions"
+            *ngIf="!(isAuthenticationCompleted$ | async)"
+          >
+            <button (click)="walletService.login()">Login</button>
+          </div>
+
+          <div
+            class="logged-in-actions"
+            *ngIf="isAuthenticationCompleted$ | async"
+          >
+            <button (click)="signAMessage()">Sign message</button>
+            <button (click)="sendSignedTransaction()">
+              Send signed transaction
+            </button>
+            <button (click)="walletService.kycModalOpen()">Start KYC</button>
+            <button (click)="walletService.logout()">Logout</button>
+          </div>
         </div>
 
-        <div
-          class="logged-in-actions"
-          *ngIf="isAuthenticationCompleted$ | async"
-        >
-          <button (click)="signAMessage()">Sign message</button>
-          <button (click)="sendSignedTransaction()">
-            Send signed transaction
-          </button>
-          <button (click)="walletService.kycModalOpen()">Start KYC</button>
-          <button (click)="walletService.logout()">Logout</button>
+        <div class="wallet-follower" *ngIf="isAuthenticationCompleted$ | async">
+          <lib-wallet-follower></lib-wallet-follower>
         </div>
-      </div>
-
-      <div class="wallet-follower" *ngIf="isAuthenticationCompleted$ | async">
-        <lib-wallet-follower></lib-wallet-follower>
-      </div>
+      </ng-container>
     </ng-container>
   </div>
 </div>
